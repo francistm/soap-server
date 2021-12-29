@@ -1,0 +1,52 @@
+<definitions xmlns:s="http://www.w3.org/2001/XMLSchema/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="http://example.org/">
+    <wsdl:types>
+        <s:schema targetNamespace="http://example.org/">
+            <s:element name="Port1Action1">
+                <s:complexType>
+                    <s:sequence>
+                        <s:element name="S" type="s:string" minOccurs="1" maxOccurs="1"/>
+                        <s:element name="I" type="s:int" minOccurs="1" maxOccurs="1"/>
+                        <s:element name="B" type="s:boolean" minOccurs="1" maxOccurs="1"/>
+                        <s:element name="SP" type="s:string" minOccurs="0" maxOccurs="1"/>
+                    </s:sequence>
+                </s:complexType>
+            </s:element>
+            <s:element name="Port1Action1Response">
+                <s:complexType>
+                    <s:sequence>
+                        <s:element name="S" type="s:string" minOccurs="1" maxOccurs="1"/>
+                        <s:element name="I" type="s:int" minOccurs="1" maxOccurs="1"/>
+                    </s:sequence>
+                </s:complexType>
+            </s:element>
+        </s:schema>
+    </wsdl:types>
+    <wsdl:message name="Port1Action1SoapIn">
+        <wsdl:part name="parameters" element="tns:Port1Action1"/>
+    </wsdl:message>
+    <wsdl:message name="Port1Action1SoapOut">
+        <wsdl:part name="parameters" element="tns:Port1Action1Response"/>
+    </wsdl:message>
+    <wsdl:portType name="Port1Soap">
+        <wsdl:operation name="Action1">
+            <wsdl:input message="Port1Action1SoapIn"/>
+            <wsdl:output message="Port1Action1SoapOut"/>
+        </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:binding name="Port1Soap" type="tns:Port1Soap">
+        <wsdl:operation name="Action1">
+            <soap:operation soapAction="http://example.org/Port1Action1"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:service name="ExampleSoap">
+        <wsdl:port name="Port1" binding="tns:Port1Soap">
+            <soap:address location="http://example.org/?wsdl"/>
+        </wsdl:port>
+    </wsdl:service>
+</definitions>

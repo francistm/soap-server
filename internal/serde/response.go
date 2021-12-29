@@ -1,4 +1,4 @@
-package parser
+package serde
 
 import (
 	"github.com/beevik/etree"
