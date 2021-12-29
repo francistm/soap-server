@@ -88,5 +88,5 @@ func assignSoapInStructFields(entryElem *etree.Element, inType interface{}) (int
 		}
 	}
 
-	return entry, nil
+	return entry.Interface(), nil
 }
