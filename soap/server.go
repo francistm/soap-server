@@ -109,6 +109,15 @@ func (s *Service) handleSoapOut(w http.ResponseWriter, r *http.Request, soapOut,
 }
 
 func (s *Service) handleSoapOutError(w http.ResponseWriter, r *http.Request, err error) {
-	w.WriteHeader(http.StatusBadRequest)
+	doc := etree.NewDocument()
+	doc.CreateProcInst("xml", `version="1.0" encoding="UTF-8"`)
+
+	bodyElem := parser.BuildEnvelope(doc)
+	parser.BuildFaultBody(bodyElem, err)
+
+	doc.Indent(2)
+	doc.WriteTo(w)
+	w.WriteHeader(http.StatusInternalServerError)
+
 	return
 }
