@@ -112,12 +112,12 @@ func (s *Service) handleSoapOutError(w http.ResponseWriter, r *http.Request, err
 	doc := etree.NewDocument()
 	doc.CreateProcInst("xml", `version="1.0" encoding="UTF-8"`)
 
-	bodyElem := serde.BuildEnvelope(doc)
-	serde.BuildFaultBody(bodyElem, err)
+	faultBodyElem := serde.BuildFaultBody(err)
+	envelopeElem := serde.BuildEnvelope(faultBodyElem)
+
+	doc.AddChild(envelopeElem)
 
 	doc.Indent(2)
-	doc.WriteTo(w)
 	w.WriteHeader(http.StatusInternalServerError)
-
-	return
+	doc.WriteTo(w)
 }

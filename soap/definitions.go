@@ -23,6 +23,7 @@ func (s *Service) printDefinition(w http.ResponseWriter, r *http.Request) {
 	}
 
 	doc.AddChild(serde.BuildDefinitions(s.name, actions, serde.WithNamespace(s.domain)))
+	doc.Indent(2)
 
 	w.WriteHeader(http.StatusOK)
 	doc.WriteTo(w)

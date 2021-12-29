@@ -7,19 +7,20 @@ import (
 
 const namespace = "soapenv"
 
-func BuildEnvelope(doc *etree.Document) *etree.Element {
-	envelope := doc.CreateElement("Envelope")
+func BuildEnvelope(bodyChildElem *etree.Element) *etree.Element {
+	envelope := etree.NewElement("Envelope")
 	envelope.Space = namespace
 	envelope.CreateAttr("xmlns:soapenv", model.NsSoap)
 
 	bodyElem := envelope.CreateElement("Body")
 	bodyElem.Space = namespace
+	bodyElem.AddChild(bodyChildElem)
 
-	return bodyElem
+	return envelope
 }
 
-func BuildFaultBody(bodyElem *etree.Element, err error) *etree.Element {
-	faultElem := bodyElem.CreateElement("Fault")
+func BuildFaultBody(err error) *etree.Element {
+	faultElem := etree.NewElement("Fault")
 	faultElem.Space = namespace
 
 	faultCodeElem := faultElem.CreateElement("Faultcode")
