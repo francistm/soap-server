@@ -7,7 +7,7 @@ const (
 	XmlSoapNs   = "soapenv"
 	XmlProcInst = `version="1.0" encoding="UTF-8"`
 
-	NsXml  = "http://www.w3.org/2001/XMLSchema/"
+	NsXml  = "http://www.w3.org/2001/XMLSchema"
 	NsSoap = "http://schemas.xmlsoap.org/wsdl/soap/"
 	NsWsdl = "http://schemas.xmlsoap.org/wsdl/"
 

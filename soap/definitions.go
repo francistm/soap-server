@@ -15,6 +15,10 @@ func (s *Service) printDefinition(w http.ResponseWriter, r *http.Request) {
 
 	actions := make(model.Actions)
 	for portName, port := range s.ports {
+		if actions[portName] == nil {
+			actions[portName] = make(map[string]*model.Action, len(port.actions))
+		}
+
 		for actionName, action := range port.actions {
 			actions[portName][actionName] = &model.Action{
 				InType:  action.in,

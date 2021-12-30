@@ -38,14 +38,16 @@ func BuildDefinitions(serviceName string, actions model.Actions, opts ...defOpt)
 		opt(defOption)
 	}
 
-	defElem := etree.NewElement("definitions")
+	defElem := etree.NewElement("wsdl:definitions")
 	defElem.CreateAttr("xmlns:s", internal.NsXml)
 	defElem.CreateAttr("xmlns:soap", internal.NsSoap)
 	defElem.CreateAttr("xmlns:wsdl", internal.NsWsdl)
 	defElem.CreateAttr("xmlns:tns", defOption.namespace)
+	defElem.CreateAttr("targetNamespace", defOption.namespace)
 
 	typesElem := defElem.CreateElement("wsdl:types")
 	schemaElem := typesElem.CreateElement("s:schema")
+	schemaElem.CreateAttr("elementFormDefault", "qualified")
 	schemaElem.CreateAttr("targetNamespace", defOption.namespace)
 
 	serviceElem := etree.NewElement("wsdl:service")
@@ -67,6 +69,7 @@ func BuildDefinitions(serviceName string, actions model.Actions, opts ...defOpt)
 		bindingElem.CreateAttr("type", fmt.Sprintf("tns:%s", wsdlPortName))
 		soapBindingElem := etree.NewElement("soap:binding")
 		soapBindingElem.CreateAttr("transport", internal.TransportHttp)
+		bindingElem.AddChild(soapBindingElem)
 
 		portElem := serviceElem.CreateElement("wsdl:port")
 		portElem.CreateAttr("name", portName)
@@ -170,12 +173,12 @@ func buildPortOperation(operationName, soapInName, soapOutName string, tIn, tOut
 
 	if tIn != nil {
 		el := opElem.CreateElement("wsdl:input")
-		el.CreateAttr("message", soapInName)
+		el.CreateAttr("message", fmt.Sprintf("tns:%s", soapInName))
 	}
 
 	if tOut != nil {
 		el := opElem.CreateElement("wsdl:output")
-		el.CreateAttr("message", soapOutName)
+		el.CreateAttr("message", fmt.Sprintf("tns:%s", soapOutName))
 	}
 
 	return opElem
@@ -186,7 +189,8 @@ func buildBindingOperation(tns, portName, actionName, soapInName, soapOutName st
 	wsdlOperation.CreateAttr("name", actionName)
 
 	soapOperation := wsdlOperation.CreateElement("soap:operation")
-	soapOperation.CreateAttr("soapAction", fmt.Sprintf("%s%s%s", tns, portName, actionName))
+	soapOperation.CreateAttr("soapAction", tns+actionName)
+	soapOperation.CreateAttr("style", "document")
 
 	if tIn != nil {
 		el := wsdlOperation.CreateElement("wsdl:input")
