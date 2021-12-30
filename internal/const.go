@@ -12,4 +12,8 @@ const (
 	NsWsdl = "http://schemas.xmlsoap.org/wsdl/"
 
 	TransportHttp = "http://schemas.xmlsoap.org/soap/http"
+
+	SoapInSuffix  = "SoapIn"
+	SoapOutSuffix = "SoapOut"
+	ElemOutSuffix = "Response"
 )

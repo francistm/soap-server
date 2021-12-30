@@ -75,10 +75,10 @@ func BuildDefinitions(serviceName string, actions model.Actions, opts ...defOpt)
 		addressElem.CreateAttr("location", defOption.location)
 
 		for actionName, action := range port {
-			elemInName := fmt.Sprintf("%s%s", portName, actionName)
-			elemOutName := fmt.Sprintf("%s%sResponse", portName, actionName)
-			soapInTypeName := fmt.Sprintf("%s%sSoapIn", portName, actionName)
-			soapOutTypeName := fmt.Sprintf("%s%sSoapOut", portName, actionName)
+			elemInName := portName + actionName
+			elemOutName := portName + actionName + internal.ElemOutSuffix
+			soapInTypeName := portName + actionName + internal.SoapInSuffix
+			soapOutTypeName := portName + actionName + internal.SoapOutSuffix
 
 			sequenceElements = buildDefSeqElems(elemInName, elemOutName, action.InType, action.OutType)
 			messageElems = buildDefElems(elemInName, elemOutName, soapInTypeName, soapOutTypeName, action.InType, action.OutType)

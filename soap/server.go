@@ -12,22 +12,22 @@ import (
 )
 
 type Service struct {
-	name    string
-	domain  string
-	ports   map[string]*Port
-	actions map[string]*Action
+	name      string
+	namespace string
+	ports     map[string]*Port
+	actions   map[string]*Action
 }
 
-func NewService(name string, domain string) *Service {
+func NewService(name string, namespace string) *Service {
 	serv := &Service{
-		name:    name,
-		domain:  domain,
-		ports:   make(map[string]*Port, 20),
-		actions: make(map[string]*Action, 20),
+		name:      name,
+		namespace: namespace,
+		ports:     make(map[string]*Port, 20),
+		actions:   make(map[string]*Action, 20),
 	}
 
-	if !strings.HasSuffix(serv.domain, "/") {
-		serv.domain += "/"
+	if !strings.HasSuffix(serv.namespace, "/") {
+		serv.namespace += "/"
 	}
 
 	return serv
@@ -99,21 +99,44 @@ func (s *Service) executeAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.handleSoapOut(w, r, soapOut, soapAction.out)
+	s.handleSoapOut(
+		w,
+		r,
+		s.namespace,
+		soapInElem.Tag+internal.ElemOutSuffix,
+		soapAction.out,
+		soapOut,
+	)
 }
 
-func (s *Service) handleSoapOut(w http.ResponseWriter, r *http.Request, soapOut, soapOutType interface{}) {
-	if soapOutType == nil {
+func (s *Service) handleSoapOut(w http.ResponseWriter, r *http.Request, ns, soapOutName string, tSoapOut, soapOut interface{}) {
+	if tSoapOut == nil {
 		w.WriteHeader(http.StatusAccepted)
 		return
 	}
+
+	if !serde.IsActionReturnValid(tSoapOut, soapOut) {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	doc := etree.NewDocument()
+	doc.CreateProcInst("xml", internal.XmlProcInst)
+
+	requestBodyElem := serde.BuildResponseBodyChild(ns, soapOutName, tSoapOut, soapOut)
+	envelopeElem := serde.BuildEnvelope(requestBodyElem)
+
+	doc.AddChild(envelopeElem)
+
+	doc.Indent(2)
+	w.WriteHeader(http.StatusOK)
+	doc.WriteTo(w)
 }
 
 func (s *Service) handleSoapOutError(w http.ResponseWriter, r *http.Request, err error) {
 	doc := etree.NewDocument()
 	doc.CreateProcInst("xml", internal.XmlProcInst)
 
-	faultBodyElem := serde.BuildFaultBody(err)
+	faultBodyElem := serde.BuildFaultBodyChild(err)
 	envelopeElem := serde.BuildEnvelope(faultBodyElem)
 
 	doc.AddChild(envelopeElem)
