@@ -33,7 +33,10 @@ type AddResponse struct {
 
 func wsdlHandler() http.HandlerFunc {
 	addAction := soap.NewAction(AddRequest{}, AddResponse{}, func(in interface{}) (interface{}, error) {
+		// the request interface can be convert into a pointer
 		input := in.(*AddRequest)
+
+		// response must be a pointer to struct, and same as the type of action defined
 		output := &AddResponse{
 			Acc: input.Int1 + input.Int2,
 		}
