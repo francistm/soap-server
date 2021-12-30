@@ -1,6 +1,6 @@
-<definitions xmlns:s="http://www.w3.org/2001/XMLSchema/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="http://example.org/">
+<wsdl:definitions xmlns:s="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="http://example.org/" targetNamespace="http://example.org/">
     <wsdl:types>
-        <s:schema targetNamespace="http://example.org/">
+        <s:schema elementFormDefault="qualified" targetNamespace="http://example.org/">
             <s:element name="Port1Action1">
                 <s:complexType>
                     <s:sequence>
@@ -29,13 +29,14 @@
     </wsdl:message>
     <wsdl:portType name="Port1Soap">
         <wsdl:operation name="Action1">
-            <wsdl:input message="Port1Action1SoapIn"/>
-            <wsdl:output message="Port1Action1SoapOut"/>
+            <wsdl:input message="tns:Port1Action1SoapIn"/>
+            <wsdl:output message="tns:Port1Action1SoapOut"/>
         </wsdl:operation>
     </wsdl:portType>
     <wsdl:binding name="Port1Soap" type="tns:Port1Soap">
+        <soap:binding transport="http://schemas.xmlsoap.org/soap/http"/>
         <wsdl:operation name="Action1">
-            <soap:operation soapAction="http://example.org/Port1Action1"/>
+            <soap:operation soapAction="http://example.org/Action1" style="document"/>
             <wsdl:input>
                 <soap:body use="literal"/>
             </wsdl:input>
@@ -49,4 +50,4 @@
             <soap:address location="http://example.org/?wsdl"/>
         </wsdl:port>
     </wsdl:service>
-</definitions>
+</wsdl:definitions>
