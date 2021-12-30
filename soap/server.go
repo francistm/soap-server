@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/beevik/etree"
+	"github.com/francistm/soap-server/internal"
 	"github.com/francistm/soap-server/internal/serde"
 	"github.com/pkg/errors"
 )
@@ -110,7 +111,7 @@ func (s *Service) handleSoapOut(w http.ResponseWriter, r *http.Request, soapOut,
 
 func (s *Service) handleSoapOutError(w http.ResponseWriter, r *http.Request, err error) {
 	doc := etree.NewDocument()
-	doc.CreateProcInst("xml", `version="1.0" encoding="UTF-8"`)
+	doc.CreateProcInst("xml", internal.XmlProcInst)
 
 	faultBodyElem := serde.BuildFaultBody(err)
 	envelopeElem := serde.BuildEnvelope(faultBodyElem)

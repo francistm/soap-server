@@ -2,18 +2,16 @@ package serde
 
 import (
 	"github.com/beevik/etree"
-	"github.com/francistm/soap-server/internal/model"
+	"github.com/francistm/soap-server/internal"
 )
-
-const namespace = "soapenv"
 
 func BuildEnvelope(bodyChildElem *etree.Element) *etree.Element {
 	envelope := etree.NewElement("Envelope")
-	envelope.Space = namespace
-	envelope.CreateAttr("xmlns:soapenv", model.NsSoap)
+	envelope.Space = internal.XmlSoapNs
+	envelope.CreateAttr("xmlns:soapenv", internal.NsSoap)
 
 	bodyElem := envelope.CreateElement("Body")
-	bodyElem.Space = namespace
+	bodyElem.Space = internal.XmlSoapNs
 	bodyElem.AddChild(bodyChildElem)
 
 	return envelope
@@ -21,7 +19,7 @@ func BuildEnvelope(bodyChildElem *etree.Element) *etree.Element {
 
 func BuildFaultBody(err error) *etree.Element {
 	faultElem := etree.NewElement("Fault")
-	faultElem.Space = namespace
+	faultElem.Space = internal.XmlSoapNs
 
 	faultCodeElem := faultElem.CreateElement("Faultcode")
 	faultCodeElem.SetText("")

@@ -5,6 +5,7 @@ import (
 	"reflect"
 
 	"github.com/beevik/etree"
+	"github.com/francistm/soap-server/internal"
 	"github.com/francistm/soap-server/internal/model"
 )
 
@@ -38,9 +39,9 @@ func BuildDefinitions(serviceName string, actions model.Actions, opts ...defOpt)
 	}
 
 	defElem := etree.NewElement("definitions")
-	defElem.CreateAttr("xmlns:s", model.NsXml)
-	defElem.CreateAttr("xmlns:soap", model.NsSoap)
-	defElem.CreateAttr("xmlns:wsdl", model.NsWsdl)
+	defElem.CreateAttr("xmlns:s", internal.NsXml)
+	defElem.CreateAttr("xmlns:soap", internal.NsSoap)
+	defElem.CreateAttr("xmlns:wsdl", internal.NsWsdl)
 	defElem.CreateAttr("xmlns:tns", defOption.namespace)
 
 	typesElem := defElem.CreateElement("wsdl:types")
@@ -65,7 +66,7 @@ func BuildDefinitions(serviceName string, actions model.Actions, opts ...defOpt)
 		bindingElem.CreateAttr("name", wsdlPortName)
 		bindingElem.CreateAttr("type", fmt.Sprintf("tns:%s", wsdlPortName))
 		soapBindingElem := etree.NewElement("soap:binding")
-		soapBindingElem.CreateAttr("transport", model.TransportHttp)
+		soapBindingElem.CreateAttr("transport", internal.TransportHttp)
 
 		portElem := serviceElem.CreateElement("wsdl:port")
 		portElem.CreateAttr("name", portName)

@@ -4,13 +4,14 @@ import (
 	"net/http"
 
 	"github.com/beevik/etree"
+	"github.com/francistm/soap-server/internal"
 	"github.com/francistm/soap-server/internal/model"
 	"github.com/francistm/soap-server/internal/serde"
 )
 
 func (s *Service) printDefinition(w http.ResponseWriter, r *http.Request) {
 	doc := etree.NewDocument()
-	doc.CreateProcInst("xml", `version="1.0" encoding="UTF-8"`)
+	doc.CreateProcInst("xml", internal.XmlProcInst)
 
 	actions := make(model.Actions)
 	for portName, port := range s.ports {
