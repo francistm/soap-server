@@ -16,9 +16,12 @@ type Service struct {
 	namespace string
 	ports     map[string]*Port
 	actions   map[string]*Action
+
+	envelopeSpace string
+	envelopeNS    map[string]string
 }
 
-func NewService(name string, namespace string) *Service {
+func NewService(name string, namespace string, opts ...serviceOption) *Service {
 	serv := &Service{
 		name:      name,
 		namespace: namespace,
@@ -28,6 +31,20 @@ func NewService(name string, namespace string) *Service {
 
 	if !strings.HasSuffix(serv.namespace, "/") {
 		serv.namespace += "/"
+	}
+
+	for _, opt := range opts {
+		opt(serv)
+	}
+
+	if serv.envelopeNS == nil {
+		serv.envelopeNS = map[string]string{
+			"xmlns:soapenv": internal.NsSoap,
+		}
+	}
+
+	if serv.envelopeSpace == "" {
+		serv.envelopeSpace = internal.XmlSoapNs
 	}
 
 	return serv
@@ -123,7 +140,7 @@ func (s *Service) handleSoapOut(w http.ResponseWriter, r *http.Request, ns, soap
 	doc.CreateProcInst("xml", internal.XmlProcInst)
 
 	requestBodyElem := serde.BuildResponseBodyChild(ns, soapOutName, tSoapOut, soapOut)
-	envelopeElem := serde.BuildEnvelope(requestBodyElem)
+	envelopeElem := serde.BuildEnvelope(s.envelopeSpace, s.envelopeNS, requestBodyElem)
 
 	doc.AddChild(envelopeElem)
 
@@ -136,8 +153,8 @@ func (s *Service) handleSoapOutError(w http.ResponseWriter, r *http.Request, err
 	doc := etree.NewDocument()
 	doc.CreateProcInst("xml", internal.XmlProcInst)
 
-	faultBodyElem := serde.BuildFaultBodyChild(err)
-	envelopeElem := serde.BuildEnvelope(faultBodyElem)
+	faultBodyElem := serde.BuildFaultBodyChild(s.envelopeSpace, err)
+	envelopeElem := serde.BuildEnvelope(s.envelopeSpace, s.envelopeNS, faultBodyElem)
 
 	doc.AddChild(envelopeElem)
 

@@ -5,28 +5,30 @@ import (
 	"strconv"
 
 	"github.com/beevik/etree"
-	"github.com/francistm/soap-server/internal"
 )
 
-func BuildEnvelope(bodyChildElem *etree.Element) *etree.Element {
+func BuildEnvelope(space string, ns map[string]string, bodyChildElem *etree.Element) *etree.Element {
 	envelope := etree.NewElement("Envelope")
-	envelope.Space = internal.XmlSoapNs
-	envelope.CreateAttr("xmlns:soapenv", internal.NsSoap)
+	envelope.Space = space
+
+	for key, value := range ns {
+		envelope.CreateAttr(key, value)
+	}
 
 	headerElem := envelope.CreateElement("Header")
-	headerElem.Space = internal.XmlSoapNs
+	headerElem.Space = space
 
 	bodyElem := envelope.CreateElement("Body")
-	bodyElem.Space = internal.XmlSoapNs
+	bodyElem.Space = space
 
 	bodyElem.AddChild(bodyChildElem)
 
 	return envelope
 }
 
-func BuildFaultBodyChild(err error) *etree.Element {
+func BuildFaultBodyChild(space string, err error) *etree.Element {
 	faultElem := etree.NewElement("Fault")
-	faultElem.Space = internal.XmlSoapNs
+	faultElem.Space = space
 
 	faultCodeElem := faultElem.CreateElement("Faultcode")
 	faultCodeElem.SetText("")
