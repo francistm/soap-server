@@ -1,6 +1,7 @@
 package soap
 
 import (
+	"context"
 	"errors"
 	"io"
 	"net/http"
@@ -54,7 +55,7 @@ func TestService_executeAction(t *testing.T) {
 				actions: map[string]*Action{
 					"A1P1": {
 						in: struct{ P1 string }{},
-						handler: func(in interface{}) (interface{}, error) {
+						handler: func(ctx context.Context, in interface{}) (interface{}, error) {
 							return nil, nil
 						},
 					},
@@ -79,7 +80,7 @@ func TestService_executeAction(t *testing.T) {
 					"A1P1": {
 						in:  struct{ P1 string }{},
 						out: struct{ P2 string }{},
-						handler: func(in interface{}) (interface{}, error) {
+						handler: func(ctx context.Context, in interface{}) (interface{}, error) {
 							return &struct{ P2 string }{"foo"}, nil
 						},
 					},

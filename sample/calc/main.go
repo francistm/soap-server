@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"net"
 	"net/http"
 
@@ -32,7 +33,7 @@ type AddResponse struct {
 }
 
 func wsdlHandler() http.HandlerFunc {
-	addAction := soap.NewAction(AddRequest{}, AddResponse{}, func(in interface{}) (interface{}, error) {
+	addAction := soap.NewAction(AddRequest{}, AddResponse{}, func(ctx context.Context, in interface{}) (interface{}, error) {
 		// the request interface can be convert into a pointer
 		input := in.(*AddRequest)
 

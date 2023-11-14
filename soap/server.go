@@ -109,7 +109,7 @@ func (s *Service) executeAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	soapAction := s.actions[soapInElem.Tag]
-	soapOut, err := soapAction.Run(soapIn)
+	soapOut, err := soapAction.Run(r.Context(), soapIn)
 
 	if err != nil {
 		s.handleSoapOutError(w, r, err)
