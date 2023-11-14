@@ -15,7 +15,7 @@ type Service struct {
 	name      string
 	namespace string
 	ports     map[string]*Port
-	actions   map[string]*Action
+	actions   map[string]IAction
 
 	envelopeSpace string
 	envelopeNS    map[string]string
@@ -26,7 +26,7 @@ func NewService(name string, namespace string, opts ...serviceOption) *Service {
 		name:      name,
 		namespace: namespace,
 		ports:     make(map[string]*Port, 20),
-		actions:   make(map[string]*Action, 20),
+		actions:   make(map[string]IAction, 20),
 	}
 
 	if !strings.HasSuffix(serv.namespace, "/") {
@@ -101,7 +101,7 @@ func (s *Service) executeAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	soapIn, err := serde.ParseSoapIn(soapInElem, action.in)
+	soapIn, err := serde.ParseSoapIn(soapInElem, action.KindIn())
 
 	if err != nil {
 		s.handleSoapOutError(w, r, err)
@@ -121,7 +121,7 @@ func (s *Service) executeAction(w http.ResponseWriter, r *http.Request) {
 		r,
 		s.namespace,
 		soapInElem.Tag+internal.ElemOutSuffix,
-		soapAction.out,
+		soapAction.KindOut(),
 		soapOut,
 	)
 }

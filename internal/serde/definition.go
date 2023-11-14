@@ -53,10 +53,12 @@ func BuildDefinitions(serviceName string, actions model.Actions, opts ...defOpt)
 	serviceElem := etree.NewElement("wsdl:service")
 	serviceElem.CreateAttr("name", serviceName)
 
-	var sequenceElements []*etree.Element
-	var messageElems []*etree.Element
-	var portTypeElems []*etree.Element
-	var bindingElems []*etree.Element
+	var (
+		sequenceElements []*etree.Element
+		messageElems     []*etree.Element
+		portTypeElems    []*etree.Element
+		bindingElems     []*etree.Element
+	)
 
 	for portName, port := range actions {
 		wsdlPortName := fmt.Sprintf("%sSoap", portName)

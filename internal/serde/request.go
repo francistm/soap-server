@@ -22,7 +22,7 @@ func ExtractSoapInElem(doc *etree.Document) (*etree.Element, error) {
 	return bodyElems[0], nil
 }
 
-func ParseSoapIn(elem *etree.Element, inType interface{}) (interface{}, error) {
+func ParseSoapIn(elem *etree.Element, inType any) (any, error) {
 	entry, err := assignSoapInStructFields(elem, inType)
 
 	if err != nil {
@@ -32,10 +32,15 @@ func ParseSoapIn(elem *etree.Element, inType interface{}) (interface{}, error) {
 	return entry, nil
 }
 
-func assignSoapInStructFields(entryElem *etree.Element, inType interface{}) (interface{}, error) {
-	entryRefType := reflect.TypeOf(inType)
+func assignSoapInStructFields(entryElem *etree.Element, inType any) (any, error) {
+	var (
+		isPtr        = false
+		entry        reflect.Value
+		entryRefType = reflect.TypeOf(inType)
+	)
 
 	for entryRefType.Kind() == reflect.Ptr {
+		isPtr = true
 		entryRefType = entryRefType.Elem()
 	}
 
@@ -43,7 +48,7 @@ func assignSoapInStructFields(entryElem *etree.Element, inType interface{}) (int
 		return nil, errors.Errorf("soapIn must be type of struct or *struct")
 	}
 
-	entry := reflect.New(entryRefType)
+	entry = reflect.New(entryRefType)
 
 	for i := 0; i < entryRefType.NumField(); i++ {
 		fieldRef := entryRefType.Field(i)
@@ -86,6 +91,10 @@ func assignSoapInStructFields(entryElem *etree.Element, inType interface{}) (int
 
 			entry.Elem().Field(i).SetInt(elemIntValue)
 		}
+	}
+
+	if !isPtr {
+		entry = entry.Elem()
 	}
 
 	return entry.Interface(), nil

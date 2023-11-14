@@ -21,8 +21,8 @@ func (s *Service) printDefinition(w http.ResponseWriter, r *http.Request) {
 
 		for actionName, action := range port.actions {
 			actions[portName][actionName] = &model.Action{
-				InType:  action.in,
-				OutType: action.out,
+				InType:  action.KindIn(),
+				OutType: action.KindOut(),
 			}
 		}
 	}

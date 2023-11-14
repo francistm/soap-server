@@ -52,10 +52,9 @@ func TestService_executeAction(t *testing.T) {
 			s: &Service{
 				name:      "test",
 				namespace: "http://example.org/",
-				actions: map[string]*Action{
-					"A1P1": {
-						in: struct{ P1 string }{},
-						handler: func(ctx context.Context, in interface{}) (interface{}, error) {
+				actions: map[string]IAction{
+					"A1P1": &Action[struct{ P1 string }, *NilOut]{
+						handler: func(ctx context.Context, in struct{ P1 string }) (*NilOut, error) {
 							return nil, nil
 						},
 					},
@@ -76,11 +75,9 @@ func TestService_executeAction(t *testing.T) {
 			s: &Service{
 				name:      "test",
 				namespace: "http://example.org/",
-				actions: map[string]*Action{
-					"A1P1": {
-						in:  struct{ P1 string }{},
-						out: struct{ P2 string }{},
-						handler: func(ctx context.Context, in interface{}) (interface{}, error) {
+				actions: map[string]IAction{
+					"A1P1": &Action[*struct{ P1 string }, *struct{ P2 string }]{
+						handler: func(ctx context.Context, in *struct{ P1 string }) (*struct{ P2 string }, error) {
 							return &struct{ P2 string }{"foo"}, nil
 						},
 					},
@@ -121,8 +118,8 @@ func TestService_handleSoapOutError(t *testing.T) {
 			s: &Service{
 				name:      "TestServ",
 				namespace: "http://example.org/",
-				actions: map[string]*Action{
-					"Port1Action1": {},
+				actions: map[string]IAction{
+					"Port1Action1": &Action[any, any]{},
 				},
 			},
 			errorMessage: "test error",
