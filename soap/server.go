@@ -14,6 +14,7 @@ import (
 type Service struct {
 	name      string
 	namespace string
+	location  string
 	ports     map[string]*Port
 	actions   map[string]IAction
 
@@ -21,10 +22,11 @@ type Service struct {
 	envelopeNS    map[string]string
 }
 
-func NewService(name string, namespace string, opts ...serviceOption) *Service {
+func NewService(name string, namespace string, location string, opts ...serviceOption) *Service {
 	serv := &Service{
 		name:      name,
 		namespace: namespace,
+		location:  location,
 		ports:     make(map[string]*Port, 20),
 		actions:   make(map[string]IAction, 20),
 	}
