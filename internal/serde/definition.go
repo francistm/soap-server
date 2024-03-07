@@ -85,13 +85,16 @@ func BuildDefinitions(serviceName string, actions model.Actions, opts ...defOpt)
 			soapInTypeName := portName + actionName + internal.SoapInSuffix
 			soapOutTypeName := portName + actionName + internal.SoapOutSuffix
 
-			sequenceElements = buildDefSeqElems(elemInName, elemOutName, action.InType, action.OutType)
-			messageElems = buildDefElems(elemInName, elemOutName, soapInTypeName, soapOutTypeName, action.InType, action.OutType)
+			actionSequenceElements := buildDefSeqElems(elemInName, elemOutName, action.InType, action.OutType)
+			actionMessageElems := buildDefElems(elemInName, elemOutName, soapInTypeName, soapOutTypeName, action.InType, action.OutType)
 			portOperationElem := buildPortOperation(actionName, soapInTypeName, soapOutTypeName, action.InType, action.OutType)
 			bindingOperationElem := buildBindingOperation(defOption.namespace, portName, actionName, soapInTypeName, soapOutTypeName, action.InType, action.OutType)
 
 			portTypeElem.AddChild(portOperationElem)
 			bindingElem.AddChild(bindingOperationElem)
+
+			sequenceElements = append(sequenceElements, actionSequenceElements...)
+			messageElems = append(messageElems, actionMessageElems...)
 		}
 
 		portTypeElems = append(portTypeElems, portTypeElem)
@@ -107,7 +110,7 @@ func BuildDefinitions(serviceName string, actions model.Actions, opts ...defOpt)
 	return defElem
 }
 
-func buildDefSeqElems(inName, outName string, tIn, tOut interface{}) []*etree.Element {
+func buildDefSeqElems(inName, outName string, tIn, tOut any) []*etree.Element {
 	elems := make([]*etree.Element, 0, 2)
 
 	if tIn != nil {
@@ -143,7 +146,7 @@ func buildDefSeqElems(inName, outName string, tIn, tOut interface{}) []*etree.El
 	return elems
 }
 
-func buildDefElems(inName, outName, soapInName, soapOutName string, tIn, tOut interface{}) []*etree.Element {
+func buildDefElems(inName, outName, soapInName, soapOutName string, tIn, tOut any) []*etree.Element {
 	out := make([]*etree.Element, 0, 2)
 
 	if tIn != nil {
@@ -169,7 +172,7 @@ func buildDefElems(inName, outName, soapInName, soapOutName string, tIn, tOut in
 	return out
 }
 
-func buildPortOperation(operationName, soapInName, soapOutName string, tIn, tOut interface{}) *etree.Element {
+func buildPortOperation(operationName, soapInName, soapOutName string, tIn, tOut any) *etree.Element {
 	opElem := etree.NewElement("wsdl:operation")
 	opElem.CreateAttr("name", operationName)
 
@@ -186,7 +189,7 @@ func buildPortOperation(operationName, soapInName, soapOutName string, tIn, tOut
 	return opElem
 }
 
-func buildBindingOperation(tns, portName, actionName, soapInName, soapOutName string, tIn, tOut interface{}) *etree.Element {
+func buildBindingOperation(tns, portName, actionName, soapInName, soapOutName string, tIn, tOut any) *etree.Element {
 	wsdlOperation := etree.NewElement("wsdl:operation")
 	wsdlOperation.CreateAttr("name", actionName)
 
@@ -213,7 +216,7 @@ func buildBindingOperation(tns, portName, actionName, soapInName, soapOutName st
 	return wsdlOperation
 }
 
-func buildSeqElemsFromStruct(t interface{}) []*etree.Element {
+func buildSeqElemsFromStruct(t any) []*etree.Element {
 	typeRef := reflect.TypeOf(t)
 
 	if typeRef.Kind() == reflect.Ptr {

@@ -13,3 +13,9 @@ func WithEnvelopeNS(ns map[string]string) serviceOption {
 		serv.envelopeNS = ns
 	}
 }
+
+func WithLocation(s string) serviceOption {
+	return func(serv *Service) {
+		serv.location = s
+	}
+}

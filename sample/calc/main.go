@@ -42,7 +42,7 @@ func wsdlHandler() http.HandlerFunc {
 	})
 
 	soapPort := soap.NewPort()
-	soapServer := soap.NewService("Calculator", "http://example.org/", "http://localhost/wsdl")
+	soapServer := soap.NewService("Calculator", "http://example.org/", soap.WithLocation("http://localhost/wsdl"))
 
 	soapPort.AddAction("Add", addAction)
 	soapServer.AddPort("Calculator", soapPort)

@@ -32,7 +32,7 @@ func TestNewService(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := NewService(tt.args.name, tt.args.domain, "http://localhost/wsdl")
+			got := NewService(tt.args.name, tt.args.domain)
 
 			require.NotNil(t, got)
 			assert.True(t, strings.HasSuffix(got.namespace, "/"))
