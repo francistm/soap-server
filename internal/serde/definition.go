@@ -219,14 +219,11 @@ func buildBindingOperation(tns, portName, actionName, soapInName, soapOutName st
 func buildSeqElemsFromStruct(t any) []*etree.Element {
 	typeRef := reflect.TypeOf(t)
 
-	if typeRef.Kind() == reflect.Ptr {
-		typeRef = typeRef.Elem()
-	}
+	typeRef, _ = derefType(typeRef)
 
 	out := make([]*etree.Element, 0, typeRef.NumField())
 
 	for i := 0; i < typeRef.NumField(); i++ {
-		isOptional := false
 		fieldRef := typeRef.Field(i)
 
 		if len(fieldRef.PkgPath) > 0 {
@@ -234,40 +231,32 @@ func buildSeqElemsFromStruct(t any) []*etree.Element {
 		}
 
 		fieldTypeRef := fieldRef.Type
-
-		if fieldTypeRef.Kind() == reflect.Ptr {
-			isOptional = true
-			fieldTypeRef = fieldTypeRef.Elem()
-		}
+		fieldTypeRef, isOptional := derefType(fieldTypeRef)
 
 		elem := etree.NewElement("s:element")
+		attrMinOccurs := "1"
+		attrMaxOccurs := "1"
+		elemTypeRef := fieldTypeRef
 
-		var (
-			attrType      string
-			attrMinOccurs string
-			attrMaxOccurs string
-		)
+		switch fieldTypeRef.Kind() {
+		case reflect.Slice:
+			attrMinOccurs = "0"
+			attrMaxOccurs = "unbounded"
+			elemTypeRef, _ = derefType(fieldTypeRef.Elem())
+
+		case reflect.Array:
+			attrMinOccurs = fmt.Sprintf("%d", fieldTypeRef.Len())
+			attrMaxOccurs = fmt.Sprintf("%d", fieldTypeRef.Len())
+			elemTypeRef, _ = derefType(fieldTypeRef.Elem())
+		}
 
 		if isOptional {
 			attrMinOccurs = "0"
-		} else {
-			attrMinOccurs = "1"
 		}
 
-		attrMaxOccurs = "1"
-
-		switch fieldTypeRef.Kind() {
-		case reflect.String:
-			attrType = "s:string"
-
-		case reflect.Int, reflect.Uint:
-			attrType = "s:int"
-
-		case reflect.Float32, reflect.Float64:
-			attrType = "s:float"
-
-		case reflect.Bool:
-			attrType = "s:boolean"
+		attrType := scalarXMLType(elemTypeRef)
+		if attrType == "" {
+			continue
 		}
 
 		elem.CreateAttr("name", fieldRef.Name)

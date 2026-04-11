@@ -30,6 +30,26 @@ func TestBuildResponseBodyChild(t *testing.T) {
 			},
 			want: `<FooResponse xmlns="http://example.org/"><Foo>blah blah</Foo></FooResponse>`,
 		},
+		{
+			name: "array field",
+			args: args{
+				ns:             "http://example.org/",
+				soapOutTagName: "FooResponse",
+				tOut:           struct{ Foo []string }{},
+				out:            struct{ Foo []string }{Foo: []string{"one", "two"}},
+			},
+			want: `<FooResponse xmlns="http://example.org/"><Foo>one</Foo><Foo>two</Foo></FooResponse>`,
+		},
+		{
+			name: "unsupported array field",
+			args: args{
+				ns:             "http://example.org/",
+				soapOutTagName: "FooResponse",
+				tOut:           struct{ Foo []struct{} }{},
+				out:            struct{ Foo []struct{} }{Foo: []struct{}{{}}},
+			},
+			want: `<FooResponse xmlns="http://example.org/"/>`,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -40,7 +60,7 @@ func TestBuildResponseBodyChild(t *testing.T) {
 
 			out, err := doc.WriteToString()
 			require.NoError(t, err)
-			assert.Equal(t, out, tt.want)
+			assert.Equal(t, tt.want, out)
 		})
 	}
 }

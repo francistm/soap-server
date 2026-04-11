@@ -2,7 +2,6 @@ package serde
 
 import (
 	"reflect"
-	"strconv"
 
 	"github.com/beevik/etree"
 	"github.com/pkg/errors"
@@ -52,44 +51,17 @@ func assignSoapInStructFields(entryElem *etree.Element, inType any) (any, error)
 
 	for i := 0; i < entryRefType.NumField(); i++ {
 		fieldRef := entryRefType.Field(i)
-		entryFieldElem := entryElem.FindElement("./" + fieldRef.Name)
+		entryFieldElems := entryElem.FindElements("./" + fieldRef.Name)
 
-		if entryFieldElem == nil {
+		if len(entryFieldElems) == 0 {
 			continue
 		}
 
-		entryFieldElemValue := entryFieldElem.Text()
+		entryField := entry.Elem().Field(i)
+		fieldTypeRef := fieldRef.Type
 
-		switch fieldRef.Type.Kind() {
-		case reflect.String:
-			entry.Elem().Field(i).SetString(entryFieldElemValue)
-
-		case reflect.Bool:
-			elemBoolValue, err := strconv.ParseBool(entryFieldElemValue)
-
-			if err != nil {
-				return nil, err
-			}
-
-			entry.Elem().Field(i).SetBool(elemBoolValue)
-
-		case reflect.Float32, reflect.Float64:
-			elemFloatValue, err := strconv.ParseFloat(entryFieldElemValue, 64)
-
-			if err != nil {
-				return nil, err
-			}
-
-			entry.Elem().Field(i).SetFloat(elemFloatValue)
-
-		case reflect.Int, reflect.Uint:
-			elemIntValue, err := strconv.ParseInt(entryFieldElemValue, 10, 64)
-
-			if err != nil {
-				return nil, err
-			}
-
-			entry.Elem().Field(i).SetInt(elemIntValue)
+		if err := setFieldFromElements(entryField, fieldTypeRef, entryFieldElems); err != nil {
+			return nil, err
 		}
 	}
 
@@ -98,4 +70,71 @@ func assignSoapInStructFields(entryElem *etree.Element, inType any) (any, error)
 	}
 
 	return entry.Interface(), nil
+}
+
+func setFieldFromElements(fieldValue reflect.Value, fieldType reflect.Type, elems []*etree.Element) error {
+	switch fieldType.Kind() {
+	case reflect.Ptr:
+		elemTypeRef := fieldType.Elem()
+		ptrValue := reflect.New(elemTypeRef)
+
+		if err := setFieldFromElements(ptrValue.Elem(), elemTypeRef, elems); err != nil {
+			return err
+		}
+
+		fieldValue.Set(ptrValue)
+
+	case reflect.Slice:
+		elemTypeRef, _ := derefType(fieldType.Elem())
+		sliceValue := reflect.MakeSlice(fieldType, 0, len(elems))
+
+		for _, fieldElem := range elems {
+			parsedValue, err := parseScalarText(fieldElem.Text(), elemTypeRef)
+			if err != nil {
+				return err
+			}
+
+			if fieldType.Elem().Kind() == reflect.Ptr {
+				ptrValue := reflect.New(elemTypeRef)
+				ptrValue.Elem().Set(parsedValue)
+				parsedValue = ptrValue
+			}
+
+			sliceValue = reflect.Append(sliceValue, parsedValue)
+		}
+
+		fieldValue.Set(sliceValue)
+
+	case reflect.Array:
+		if len(elems) != fieldValue.Len() {
+			return errors.Errorf("field %s expects %d elements, got %d", fieldType, fieldValue.Len(), len(elems))
+		}
+
+		elemTypeRef, _ := derefType(fieldType.Elem())
+
+		for i, fieldElem := range elems {
+			parsedValue, err := parseScalarText(fieldElem.Text(), elemTypeRef)
+			if err != nil {
+				return err
+			}
+
+			if fieldType.Elem().Kind() == reflect.Ptr {
+				ptrValue := reflect.New(elemTypeRef)
+				ptrValue.Elem().Set(parsedValue)
+				parsedValue = ptrValue
+			}
+
+			fieldValue.Index(i).Set(parsedValue)
+		}
+
+	default:
+		parsedValue, err := parseScalarText(elems[0].Text(), fieldType)
+		if err != nil {
+			return err
+		}
+
+		fieldValue.Set(parsedValue)
+	}
+
+	return nil
 }

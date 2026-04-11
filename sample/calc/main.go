@@ -32,6 +32,14 @@ type AddResponse struct {
 	Acc int
 }
 
+type SumRequest struct {
+	Ints []int
+}
+
+type SumResponse struct {
+	Acc int
+}
+
 func wsdlHandler() http.HandlerFunc {
 	addAction := soap.NewAction(func(ctx context.Context, input *AddRequest) (*AddResponse, error) {
 		output := &AddResponse{
@@ -41,10 +49,25 @@ func wsdlHandler() http.HandlerFunc {
 		return output, nil
 	})
 
+	sumAction := soap.NewAction(func(ctx context.Context, input *SumRequest) (*SumResponse, error) {
+		acc := 0
+
+		for _, v := range input.Ints {
+			acc += v
+		}
+
+		output := &SumResponse{
+			Acc: acc,
+		}
+
+		return output, nil
+	})
+
 	soapPort := soap.NewPort()
 	soapServer := soap.NewService("Calculator", "http://example.org/", soap.WithLocation("http://localhost/wsdl"))
 
 	soapPort.AddAction("Add", addAction)
+	soapPort.AddAction("Sum", sumAction)
 	soapServer.AddPort("Calculator", soapPort)
 
 	return func(rw http.ResponseWriter, r *http.Request) {

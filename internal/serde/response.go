@@ -2,7 +2,6 @@ package serde
 
 import (
 	"reflect"
-	"strconv"
 
 	"github.com/beevik/etree"
 )
@@ -84,9 +83,7 @@ func buildOutStructFieldsElements(tOut, out interface{}) []*etree.Element {
 	tOutTypeRef := reflect.TypeOf(tOut)
 	outValueRef := reflect.ValueOf(out)
 
-	if tOutTypeRef.Kind() == reflect.Ptr {
-		tOutTypeRef = tOutTypeRef.Elem()
-	}
+	tOutTypeRef, _ = derefType(tOutTypeRef)
 
 	if outValueRef.Kind() == reflect.Ptr {
 		outValueRef = outValueRef.Elem()
@@ -101,13 +98,18 @@ func buildOutStructFieldsElements(tOut, out interface{}) []*etree.Element {
 			continue
 		}
 
-		var elemText string
-		elem := etree.NewElement(outField.Name)
 		fieldValueRef := outValueRef.Field(i)
 
 		if fieldValueRef.Kind() == reflect.Ptr {
 			if fieldValueRef.IsNil() {
+				fieldTypeRef, _ := derefType(outField.Type)
+				if scalarXMLType(fieldTypeRef) == "" {
+					continue
+				}
+
+				elem := etree.NewElement(outField.Name)
 				elem.SetText("")
+				elems = append(elems, elem)
 				continue
 			}
 
@@ -115,23 +117,38 @@ func buildOutStructFieldsElements(tOut, out interface{}) []*etree.Element {
 		}
 
 		switch fieldValueRef.Kind() {
-		case reflect.String:
-			elemText = fieldValueRef.String()
+		case reflect.Slice, reflect.Array:
+			for j := 0; j < fieldValueRef.Len(); j++ {
+				itemValueRef := fieldValueRef.Index(j)
 
-		case reflect.Bool:
-			elemText = strconv.FormatBool(fieldValueRef.Bool())
+				if itemValueRef.Kind() == reflect.Ptr {
+					if itemValueRef.IsNil() {
+						continue
+					}
 
-		case reflect.Int, reflect.Uint:
-			intVal := fieldValueRef.Int()
-			elemText = strconv.Itoa(int(intVal))
+					itemValueRef = itemValueRef.Elem()
+				}
 
-		case reflect.Float32, reflect.Float64:
-			floatVal := fieldValueRef.Float()
-			elemText = strconv.FormatFloat(floatVal, 'E', -1, 64)
+				elemText, ok := scalarText(itemValueRef)
+				if !ok {
+					continue
+				}
+
+				elem := etree.NewElement(outField.Name)
+				elem.SetText(elemText)
+				elems = append(elems, elem)
+			}
+
+		default:
+			elemText, ok := scalarText(fieldValueRef)
+			if !ok {
+				continue
+			}
+
+			elem := etree.NewElement(outField.Name)
+			elem.SetText(elemText)
+			elems = append(elems, elem)
 		}
-
-		elem.SetText(elemText)
-		elems = append(elems, elem)
 	}
 
 	return elems
